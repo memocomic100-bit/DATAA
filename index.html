@@ -8,79 +8,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
-font-family:Tahoma;
-margin:0;
-background:#f1f3f5;
-}
-
-header{
-background:#198754;
-color:white;
-padding:15px;
-text-align:center;
-font-size:20px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:10px;
-padding:10px;
-}
-
-.card{
-background:white;
-padding:15px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,.1);
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin-top:5px;
-border:1px solid #ccc;
-border-radius:6px;
-}
-
-button{
-width:100%;
-padding:10px;
-margin-top:10px;
-background:#0d6efd;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
+body{font-family:Tahoma;margin:0;background:#f1f3f5}
+header{background:#198754;color:#fff;padding:15px;text-align:center;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;padding:10px}
+.card{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+input,select{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:6px}
+button{width:100%;padding:10px;margin-top:10px;background:#0d6efd;color:#fff;border:none;border-radius:6px;cursor:pointer}
 button:hover{background:#0b5ed7}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:6px;
-text-align:center;
-font-size:14px;
-}
-
-th{
-background:#198754;
-color:white;
-}
-
-.kpi{
-font-size:18px;
-font-weight:bold;
-color:#198754;
-}
-
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ddd;padding:6px;text-align:center;font-size:14px}
+th{background:#198754;color:#fff}
+.kpi{font-size:18px;font-weight:bold;color:#198754}
 .red{color:red}
 .blue{color:#0d6efd}
 </style>
@@ -92,20 +30,14 @@ color:#198754;
 
 <div class="grid">
 
-<!-- KPI -->
 <div class="card">
 <h3>💰 صافي الربح اليوم</h3>
 <div class="kpi" id="profitToday">0</div>
 </div>
 
 <div class="card">
-<h3>📦 المخزون الكلي</h3>
+<h3>📦 المخزون</h3>
 <div class="kpi" id="stockTotal">0 كجم</div>
-</div>
-
-<div class="card">
-<h3>💸 المصروفات اليوم</h3>
-<div class="kpi red" id="expenseToday">0</div>
 </div>
 
 <div class="card">
@@ -113,11 +45,15 @@ color:#198754;
 <div class="kpi blue" id="salesToday">0</div>
 </div>
 
+<div class="card">
+<h3>💸 المصروفات اليوم</h3>
+<div class="kpi red" id="expenseToday">0</div>
+</div>
+
 </div>
 
 <div class="grid">
 
-<!-- إضافة صنف -->
 <div class="card">
 <h3>إضافة صنف</h3>
 <input id="name" placeholder="اسم الصنف">
@@ -127,12 +63,13 @@ color:#198754;
 <button onclick="addItem()">إضافة</button>
 </div>
 
-<!-- بيع -->
 <div class="card">
 <h3>تسجيل بيع</h3>
 
 <select id="saleItem"></select>
+
 <input id="saleQty" type="number" placeholder="الكمية">
+
 <select id="saleType">
 <option value="kg">كيلو</option>
 <option value="g">جرام</option>
@@ -141,7 +78,6 @@ color:#198754;
 <button onclick="sellItem()">بيع</button>
 </div>
 
-<!-- مصروف -->
 <div class="card">
 <h3>مصروف</h3>
 <input id="expName" placeholder="البيان">
@@ -151,7 +87,6 @@ color:#198754;
 
 </div>
 
-<!-- جدول الأصناف -->
 <div class="card">
 <h3>📦 المخزون</h3>
 <table>
@@ -168,13 +103,12 @@ color:#198754;
 </table>
 </div>
 
-<!-- السجل اليومي -->
 <div class="card">
 <h3>📅 سجل الأيام</h3>
 <table>
 <thead>
 <tr>
-<th>اليوم</th>
+<th>التاريخ</th>
 <th>مبيعات</th>
 <th>مصروفات</th>
 <th>ربح</th>
@@ -184,7 +118,6 @@ color:#198754;
 </table>
 </div>
 
-<!-- رسم بياني -->
 <div class="card">
 <h3>📊 تحليل الأرباح</h3>
 <canvas id="chart"></canvas>
@@ -220,21 +153,39 @@ save();
 render();
 }
 
-/* بيع */
+/* بيع (مصحح بالكامل) */
 function sellItem(){
-let i = saleItem.value;
-let q = Number(saleQty.value);
+
+let index = Number(saleItem.value);
+let qty = Number(saleQty.value);
 let type = saleType.value;
 
-let real = type==="g"?q/1000:q;
+if(!items[index]){
+alert("اختار صنف صحيح");
+return;
+}
 
-if(real>items[i].qty) return alert("المخزون لا يكفي");
+if(qty<=0){
+alert("أدخل كمية صحيحة");
+return;
+}
 
-items[i].qty -= real;
+let realQty = (type==="g") ? qty/1000 : qty;
+
+if(realQty > items[index].qty){
+alert("المخزون لا يكفي");
+return;
+}
+
+items[index].qty -= realQty;
+
+let value = realQty * items[index].sell;
 
 sales.push({
 date:today(),
-value:real*items[i].sell
+name:items[index].name,
+qty:realQty,
+value:value
 });
 
 save();
@@ -251,8 +202,9 @@ save();
 render();
 }
 
-/* حساب */
+/* حساب اليوم */
 function calc(){
+
 let d = today();
 
 let s = sales.filter(x=>x.date===d)
@@ -264,7 +216,7 @@ let e = expenses.filter(x=>x.date===d)
 return {s,e,profit:s-e};
 }
 
-/* تحديث يومي */
+/* يومي */
 function updateDaily(){
 
 let d = today();
@@ -287,13 +239,19 @@ daily[i]={date:d,sales:s,expenses:e,profit:s-e};
 /* عرض */
 function render(){
 
+// dropdown (مصحح undefined)
 saleItem.innerHTML="";
 
 items.forEach((x,i)=>{
-saleItem.innerHTML+=`<option value="${i}">${x.name}</option>`;
+saleItem.innerHTML+=
+`<option value="${i}">
+${x.name} - ${x.qty.toFixed(2)} كجم
+</option>`;
 });
 
-itemsTable.innerHTML = items.map((x,i)=>
+// table items
+itemsTable.innerHTML =
+items.map((x,i)=>
 `<tr>
 <td>${x.name}</td>
 <td>${x.qty.toFixed(2)}</td>
@@ -303,18 +261,21 @@ itemsTable.innerHTML = items.map((x,i)=>
 </tr>`
 ).join("");
 
+// KPIs
 let c = calc();
 
 profitToday.innerText = c.profit.toFixed(2);
-salesToday.innerText = c.s;
-expenseToday.innerText = c.e;
+salesToday.innerText = c.s.toFixed(2);
+expenseToday.innerText = c.e.toFixed(2);
 
 stockTotal.innerText =
 items.reduce((a,b)=>a+b.qty,0).toFixed(2)+" كجم";
 
 updateDaily();
 
-dailyTable.innerHTML = daily.map(d=>
+// daily table
+dailyTable.innerHTML =
+daily.map(d=>
 `<tr>
 <td>${d.date}</td>
 <td>${d.sales.toFixed(2)}</td>
@@ -328,7 +289,7 @@ drawChart();
 save();
 }
 
-/* رسم بياني */
+/* chart */
 function drawChart(){
 
 let ctx = document.getElementById("chart");
@@ -338,7 +299,7 @@ type:"line",
 data:{
 labels:daily.map(d=>d.date),
 datasets:[{
-label:"الربح اليومي",
+label:"الربح",
 data:daily.map(d=>d.profit),
 borderColor:"#198754",
 fill:false
