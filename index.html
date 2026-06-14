@@ -3,21 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>فراخ المحمود - النظام الاحترافي</title>
+<title>فراخ المحمود</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{font-family:Tahoma;margin:0;background:#f1f3f5}
-header{background:#198754;color:#fff;padding:15px;text-align:center;font-size:20px}
+body{font-family:Tahoma;margin:0;background:#f2f4f6}
+header{background:#198754;color:#fff;text-align:center;padding:15px;font-size:20px}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;padding:10px}
+
 .card{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1)}
-input,select{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:6px}
-button{width:100%;padding:10px;margin-top:10px;background:#0d6efd;color:#fff;border:none;border-radius:6px;cursor:pointer}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#0d6efd;
+color:#fff;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
 button:hover{background:#0b5ed7}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{border:1px solid #ddd;padding:6px;text-align:center;font-size:14px}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:6px;
+text-align:center;
+font-size:14px;
+}
+
 th{background:#198754;color:#fff}
+
 .kpi{font-size:18px;font-weight:bold;color:#198754}
 .red{color:red}
 .blue{color:#0d6efd}
@@ -26,28 +59,28 @@ th{background:#198754;color:#fff}
 
 <body>
 
-<header>🐔 فراخ المحمود - النظام الاحترافي</header>
+<header>🐔 فراخ المحمود - النظام المحاسبي</header>
 
 <div class="grid">
 
 <div class="card">
-<h3>💰 صافي الربح اليوم</h3>
+<h3>💰 ربح اليوم</h3>
 <div class="kpi" id="profitToday">0</div>
+</div>
+
+<div class="card">
+<h3>🧾 مبيعات اليوم</h3>
+<div class="kpi blue" id="salesToday">0</div>
+</div>
+
+<div class="card">
+<h3>💸 مصروفات اليوم</h3>
+<div class="kpi red" id="expenseToday">0</div>
 </div>
 
 <div class="card">
 <h3>📦 المخزون</h3>
 <div class="kpi" id="stockTotal">0 كجم</div>
-</div>
-
-<div class="card">
-<h3>🧾 المبيعات اليوم</h3>
-<div class="kpi blue" id="salesToday">0</div>
-</div>
-
-<div class="card">
-<h3>💸 المصروفات اليوم</h3>
-<div class="kpi red" id="expenseToday">0</div>
 </div>
 
 </div>
@@ -108,7 +141,7 @@ th{background:#198754;color:#fff}
 <table>
 <thead>
 <tr>
-<th>التاريخ</th>
+<th>اليوم</th>
 <th>مبيعات</th>
 <th>مصروفات</th>
 <th>ربح</th>
@@ -119,7 +152,7 @@ th{background:#198754;color:#fff}
 </div>
 
 <div class="card">
-<h3>📊 تحليل الأرباح</h3>
+<h3>📊 الرسم البياني</h3>
 <canvas id="chart"></canvas>
 </div>
 
@@ -143,34 +176,43 @@ return new Date().toLocaleDateString("ar-EG");
 
 /* إضافة صنف */
 function addItem(){
-items.push({
-name:name.value,
-qty:Number(qty.value),
-buy:Number(buy.value),
-sell:Number(sell.value)
-});
+
+const n = document.getElementById("name").value;
+const q = Number(document.getElementById("qty").value);
+const b = Number(document.getElementById("buy").value);
+const s = Number(document.getElementById("sell").value);
+
+if(!n || !q || !b || !s){
+alert("أكمل البيانات");
+return;
+}
+
+items.push({name:n,qty:q,buy:b,sell:s});
 save();
 render();
 }
 
-/* بيع (مصحح بالكامل) */
+/* البيع (مضمون 100%) */
 function sellItem(){
 
-let index = Number(saleItem.value);
-let qty = Number(saleQty.value);
-let type = saleType.value;
+const select = document.getElementById("saleItem");
+const qtyInput = document.getElementById("saleQty");
+const type = document.getElementById("saleType");
+
+const index = Number(select.value);
+const qty = Number(qtyInput.value);
 
 if(!items[index]){
 alert("اختار صنف صحيح");
 return;
 }
 
-if(qty<=0){
+if(!qty || qty <= 0){
 alert("أدخل كمية صحيحة");
 return;
 }
 
-let realQty = (type==="g") ? qty/1000 : qty;
+let realQty = (type.value === "g") ? qty / 1000 : qty;
 
 if(realQty > items[index].qty){
 alert("المخزون لا يكفي");
@@ -182,10 +224,10 @@ items[index].qty -= realQty;
 let value = realQty * items[index].sell;
 
 sales.push({
-date:today(),
-name:items[index].name,
-qty:realQty,
-value:value
+name: items[index].name,
+qty: realQty,
+value: value,
+date: new Date().toLocaleString("ar-EG")
 });
 
 save();
@@ -194,10 +236,21 @@ render();
 
 /* مصروف */
 function addExpense(){
+
+const name = document.getElementById("expName").value;
+const value = Number(document.getElementById("expValue").value);
+
+if(!name || !value){
+alert("أكمل البيانات");
+return;
+}
+
 expenses.push({
-date:today(),
-value:Number(expValue.value)
+name,
+value,
+date: new Date().toLocaleString("ar-EG")
 });
+
 save();
 render();
 }
@@ -207,51 +260,56 @@ function calc(){
 
 let d = today();
 
-let s = sales.filter(x=>x.date===d)
+let s = sales.filter(x=>x.date?.includes(d))
 .reduce((a,b)=>a+b.value,0);
 
-let e = expenses.filter(x=>x.date===d)
+let e = expenses.filter(x=>x.date?.includes(d))
 .reduce((a,b)=>a+b.value,0);
 
 return {s,e,profit:s-e};
 }
 
-/* يومي */
+/* تحديث يومي */
 function updateDaily(){
 
 let d = today();
 
-let s = sales.filter(x=>x.date===d)
+let s = sales.filter(x=>x.date?.includes(d))
 .reduce((a,b)=>a+b.value,0);
 
-let e = expenses.filter(x=>x.date===d)
+let e = expenses.filter(x=>x.date?.includes(d))
 .reduce((a,b)=>a+b.value,0);
 
 let i = daily.findIndex(x=>x.date===d);
 
-if(i===-1){
+if(i === -1){
 daily.push({date:d,sales:s,expenses:e,profit:s-e});
 }else{
 daily[i]={date:d,sales:s,expenses:e,profit:s-e};
 }
 }
 
-/* عرض */
-function render(){
+/* dropdown آمن */
+function fillDropdown(){
 
-// dropdown (مصحح undefined)
-saleItem.innerHTML="";
+const sel = document.getElementById("saleItem");
+
+sel.innerHTML = "";
 
 items.forEach((x,i)=>{
-saleItem.innerHTML+=
-`<option value="${i}">
+sel.innerHTML += `
+<option value="${i}">
 ${x.name} - ${x.qty.toFixed(2)} كجم
 </option>`;
 });
+}
 
-// table items
-itemsTable.innerHTML =
-items.map((x,i)=>
+/* عرض */
+function render(){
+
+fillDropdown();
+
+itemsTable.innerHTML = items.map((x,i)=>
 `<tr>
 <td>${x.name}</td>
 <td>${x.qty.toFixed(2)}</td>
@@ -261,7 +319,6 @@ items.map((x,i)=>
 </tr>`
 ).join("");
 
-// KPIs
 let c = calc();
 
 profitToday.innerText = c.profit.toFixed(2);
@@ -273,9 +330,7 @@ items.reduce((a,b)=>a+b.qty,0).toFixed(2)+" كجم";
 
 updateDaily();
 
-// daily table
-dailyTable.innerHTML =
-daily.map(d=>
+dailyTable.innerHTML = daily.map(d=>
 `<tr>
 <td>${d.date}</td>
 <td>${d.sales.toFixed(2)}</td>
@@ -292,7 +347,7 @@ save();
 /* chart */
 function drawChart(){
 
-let ctx = document.getElementById("chart");
+const ctx = document.getElementById("chart");
 
 new Chart(ctx,{
 type:"line",
